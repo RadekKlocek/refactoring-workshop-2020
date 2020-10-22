@@ -65,6 +65,15 @@ Controller::Controller(IPort& p_displayPort, IPort& p_foodPort, IPort& p_scorePo
     }
 }
 
+void Controller::setCoordsAndValue(DisplayInd& head, int x, int y, Cell cell_value)
+{
+    head.x = x;
+    head.y = y;
+    head.value = cell_value; 
+
+    m_displayPort.send(std::make_unique<EventT<DisplayInd>>(head));
+}
+
 void Controller::receive(std::unique_ptr<Event> e)
 {
     try {
@@ -113,11 +122,7 @@ void Controller::receive(std::unique_ptr<Event> e)
         if (not lost) {
             m_segments.push_front(newHead);
             DisplayInd placeNewHead;
-            placeNewHead.x = newHead.x;
-            placeNewHead.y = newHead.y;
-            placeNewHead.value = Cell_SNAKE;
-
-            m_displayPort.send(std::make_unique<EventT<DisplayInd>>(placeNewHead));
+            setCoordsAndValue(placeNewHead, newHead.x, newHead.y, Cell_SNAKE);
 
             m_segments.erase(
                 std::remove_if(
@@ -149,16 +154,10 @@ void Controller::receive(std::unique_ptr<Event> e)
                     m_foodPort.send(std::make_unique<EventT<FoodReq>>());
                 } else {
                     DisplayInd clearOldFood;
-                    clearOldFood.x = m_foodPosition.first;
-                    clearOldFood.y = m_foodPosition.second;
-                    clearOldFood.value = Cell_FREE;
-                    m_displayPort.send(std::make_unique<EventT<DisplayInd>>(clearOldFood));
+                    setCoordsAndValue(clearOldFood, m_foodPosition.first, m_foodPosition.second, Cell_FREE);
 
                     DisplayInd placeNewFood;
-                    placeNewFood.x = receivedFood.x;
-                    placeNewFood.y = receivedFood.y;
-                    placeNewFood.value = Cell_FOOD;
-                    m_displayPort.send(std::make_unique<EventT<DisplayInd>>(placeNewFood));
+                    setCoordsAndValue(placeNewFood, receivedFood.x, receivedFood.y, Cell_FOOD);
                 }
 
                 m_foodPosition = std::make_pair(receivedFood.x, receivedFood.y);
@@ -179,10 +178,7 @@ void Controller::receive(std::unique_ptr<Event> e)
                         m_foodPort.send(std::make_unique<EventT<FoodReq>>());
                     } else {
                         DisplayInd placeNewFood;
-                        placeNewFood.x = requestedFood.x;
-                        placeNewFood.y = requestedFood.y;
-                        placeNewFood.value = Cell_FOOD;
-                        m_displayPort.send(std::make_unique<EventT<DisplayInd>>(placeNewFood));
+                        setCoordsAndValue(placeNewFood, requestedFood.x, requestedFood.y, Cell_FOOD);
                     }
 
                     m_foodPosition = std::make_pair(requestedFood.x, requestedFood.y);

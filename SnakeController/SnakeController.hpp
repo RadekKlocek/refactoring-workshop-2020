@@ -48,6 +48,8 @@ private:
 
     Direction m_currentDirection;
     std::list<Segment> m_segments;
+
+    void setCoordsAndValue(DisplayInd& head, int x, int y, Cell cell_value);
 };
 
 } // namespace Snake
